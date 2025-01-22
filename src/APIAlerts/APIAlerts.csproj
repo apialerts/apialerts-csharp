@@ -9,7 +9,7 @@
     <RepositoryUrl>https://github.com/apialerts/apialerts-csharp</RepositoryUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
-    <Version>0.0.1</Version>
+    <Version>0.0.1-alpha</Version>
     <RootNamespace>APIAlerts</RootNamespace>
     <Description>Python wrapper for the apialerts.com service</Description>
     <PackageTags>API Alerts Push Notifications Monitoring</PackageTags>
