@@ -23,6 +23,6 @@ jobs:
       - name: Pack NuGets
         run: dotnet pack -c Release src/APIAlerts/APIAlerts.csproj --no-build --output .
       - name: Send Build Alert
-        run: dotnet run --project Script.GitHub/Program.cs -- build
+        run: dotnet run --project Script.GitHub/Script.GitHub.csproj -- build
         env:
           APIALERTS_API_KEY: ${{ secrets.APIALERTS_API_KEY }}
