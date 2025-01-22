@@ -21,9 +21,9 @@ jobs:
         run: dotnet test src/APIAlerts/APIAlerts.csproj --no-build --verbosity normal
       - name: Pack NuGets
         run: dotnet pack -c Release src/APIAlerts/APIAlerts.csproj --no-build --output .
-      - name: Push to NuGet
+      - name: Publish to NuGet
         run: dotnet nuget push "*.nupkg" --api-key ${{secrets.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
-      - name: Send Build Alert
+      - name: Notify
         run: dotnet run --project Script.GitHub/Script.GitHub.csproj -- publish
         env:
           APIALERTS_API_KEY: ${{ secrets.APIALERTS_API_KEY }}
