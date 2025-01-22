@@ -5,14 +5,18 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Title>API Alerts</Title>
+    <Authors>API Alerts</Authors>
     <PackageProjectUrl>https://apialerts.com/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/apialerts/apialerts-csharp</RepositoryUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
-    <Version>1.0.0-alpha2</Version>
+    <Version>1.0.0-alpha3</Version>
     <RootNamespace>APIAlerts</RootNamespace>
     <Description>Python wrapper for the apialerts.com service</Description>
+    <Summary>Python wrapper for the apialerts.com service</Summary>
+    <Copyright>Copyright © API Alerts 2025</Copyright>
     <PackageTags>API Alerts Push Notifications Monitoring</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,6 +25,10 @@
       <PackagePath>\</PackagePath>
     </None>
     <None Include="..\..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\..\LICENSE">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
