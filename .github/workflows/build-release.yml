@@ -17,11 +17,11 @@ jobs:
         with:
           dotnet-version: '6.0.x'
       - name: Build
-        run: dotnet build -c Release src/ApiAlerts.Common/ApiAlerts.Common.csproj
+        run: dotnet build -c Release src/APIAlerts/APIAlerts.csproj
       - name: Test
-        run: dotnet test src/ApiAlerts.Common/ApiAlerts.Common.csproj --no-build --verbosity normal
+        run: dotnet test src/APIAlerts/APIAlerts.csproj --no-build --verbosity normal
       - name: Pack NuGets
-        run: dotnet pack -c Release src/ApiAlerts.Common/ApiAlerts.Common.csproj --no-build --output .
+        run: dotnet pack -c Release src/APIAlerts/APIAlerts.csproj --no-build --output .
       - name: Send Build Alert
         working-directory: ./sample
         run: run dotnet run --project Script.GitHub/Program.cs -- release

@@ -1,16 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFrameworks>net6.0;netstandard2.0;net472;net462</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Title>Api Alerts</Title>
+    <Title>API Alerts</Title>
     <PackageProjectUrl>https://apialerts.com/</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/apialerts/apialerts-dotnet</RepositoryUrl>
+    <RepositoryUrl>https://github.com/apialerts/apialerts-csharp</RepositoryUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
     <Version>1.1.0</Version>
     <RootNamespace>APIAlerts</RootNamespace>
+    <Description>Python wrapper for the apialerts.com service</Description>
+    <PackageTags>API Alerts Push Notifications Monitoring</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
