@@ -36,7 +36,7 @@ public class AlertTests
         const string message = "Test message";
         const string channel = "Test channel";
         const string link = "https://example.com";
-        var tags = new List<string> { "tag1", "tag2" };
+        var tags = new[] { "tag1", "tag2" };
 
         var alertEvent = new Alert
         {

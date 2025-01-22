@@ -19,7 +19,7 @@ public class EndpointsTests
             Message = "test message",
             Channel = "test-channel",
             Link = "https://example.com",
-            Tags = new List<string> { "tag1", "tag2" }
+            Tags = new[] { "tag1", "tag2" }
         };
 
         var network = MockHttp.Client(statusCode, response);
@@ -49,7 +49,7 @@ public class EndpointsTests
             Message = "test message",
             Channel = "test-channel",
             Link = "https://example.com",
-            Tags = new List<string> { "tag1", "tag2" }
+            Tags = new[] { "tag1", "tag2" }
         };
 
         var network = MockHttp.Client(statusCode, response);
@@ -73,7 +73,7 @@ public class EndpointsTests
             Message = "test message",
             Channel = "test-channel",
             Link = "https://example.com",
-            Tags = new List<string> { "tag1", "tag2" }
+            Tags = new[] { "tag1", "tag2" }
         };
 
         var network = MockHttp.Client(statusCode, response);

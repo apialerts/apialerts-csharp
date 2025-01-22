@@ -14,5 +14,5 @@ internal class EventRequest
     public string? Link { get; set; }
     
     [JsonPropertyName("tags")]
-    public List<string>? Tags { get; set; }
+    public string[]? Tags { get; set; }
 }

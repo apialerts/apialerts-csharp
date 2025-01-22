@@ -13,7 +13,7 @@ namespace APIAlerts.Tests
         [Fact]
         public void IntegrationName_ShouldBeCorrect()
         {
-            Assert.Equal("dotnet", Constants.IntegrationName);
+            Assert.Equal("csharp", Constants.IntegrationName);
         }
 
         [Fact]

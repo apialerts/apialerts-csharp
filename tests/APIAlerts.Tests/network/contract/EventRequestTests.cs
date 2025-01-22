@@ -15,7 +15,7 @@ public class EventRequestTests
             Channel = "my-channel",
             Message = "Test message",
             Link = "https://example.com",
-            Tags = new List<string> { "tag1", "tag2" }
+            Tags = new[] { "tag1", "tag2" }
         };
 
         var json = JsonSerializer.Serialize(eventRequest, Json.JsonOptions);
@@ -39,7 +39,7 @@ public class EventRequestTests
         Assert.Equal("Test message", eventRequest?.Message);
         Assert.Equal("https://example.com", eventRequest?.Link);
         Assert.NotNull(eventRequest?.Tags);
-        Assert.Equal(2, eventRequest?.Tags?.Count);
+        Assert.Equal(2, eventRequest.Tags?.Length);
         Assert.Equal("tag1", eventRequest?.Tags?[0]);
         Assert.Equal("tag2", eventRequest?.Tags?[1]);
     }

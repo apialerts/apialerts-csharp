@@ -18,7 +18,7 @@ jobs:
       - name: Build
         run: dotnet build -c Release src/APIAlerts/APIAlerts.csproj
       - name: Test
-        run: dotnet test src/APIAlerts/APIAlerts.csproj --no-build --verbosity normal
+        run: dotnet test --no-build --verbosity normal
       - name: Pack NuGets
         run: dotnet pack -c Release src/APIAlerts/APIAlerts.csproj --no-build --output .
       - name: Publish to NuGet

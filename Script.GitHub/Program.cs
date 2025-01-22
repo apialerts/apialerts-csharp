@@ -43,24 +43,24 @@ class Program
     {
         var eventChannel = "developer";
         var eventMessage = "apialerts-csharp";
-        List<string> eventTags = new List<string>();
+        var eventTags = Array.Empty<string>();
         const string eventLink = "https://github.com/apialerts/apialerts-csharp/actions";
 
         if (build)
         {
             eventMessage = "C# - PR build success";
-            eventTags.AddRange(new[] { "CI/CD", "C#", "Build" });
+            eventTags = new[] { "CI/CD", "C#", "Build" };
         }
         else if (release)
         {
             eventMessage = "C# - Build for publish success";
-            eventTags.AddRange(new[] { "CI/CD", "C#", "Build" });
+            eventTags = new[] { "CI/CD", "C#", "Build" };
         }
         else if (publish)
         {
             eventChannel = "releases";
             eventMessage = "C# - NuGet publish success";
-            eventTags.AddRange(new[] { "CI/CD", "C#", "Deploy" });
+            eventTags = new[] { "CI/CD", "C#", "Deploy" };
         }
 
         return new APIAlerts.Alert

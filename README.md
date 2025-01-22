@@ -36,10 +36,10 @@ You can send alerts by constructing the AlertEvent class and passing it to the S
 ```csharp
 var alert = new APIAlerts.Alert
 {
-    Message = "My alert message",               // required message
-    Channel = "my-channel-identifier",          // optional, uses the default channel if not provided
-    Tags = new List<string> { "tag1", "tag2" }, // optional
-    Link = "https://example.com"                // optional
+    Message = "My alert message",       // required message
+    Channel = "my-channel-identifier",  // optional, uses the default channel if not provided
+    Tags = new[] { "tag1", "tag2" },    // optional
+    Link = "https://example.com"        // optional
 };
 
 APIAlerts.Client.Send(alert);

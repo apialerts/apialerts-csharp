@@ -9,7 +9,7 @@ internal class MockService : IService
     public string? SentApiKey { get; private set; }
     public string? SentChannel { get; private set; }
     public string? SentMessage { get; private set; }
-    public List<string>? SentTags { get; private set; }
+    public string[]? SentTags { get; private set; }
     public string? SentLink { get; private set; }
     
     public void Configure(string apiKey, bool debug = false)
