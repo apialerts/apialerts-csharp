@@ -10,7 +10,7 @@
     <RepositoryUrl>https://github.com/apialerts/apialerts-csharp</RepositoryUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
-    <Version>1.0.0-alpha3</Version>
+    <Version>1.0.0-alpha4</Version>
     <RootNamespace>APIAlerts</RootNamespace>
     <Description>Python wrapper for the apialerts.com service</Description>
     <Summary>Python wrapper for the apialerts.com service</Summary>
