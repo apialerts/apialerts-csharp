@@ -1,68 +1,59 @@
-using APIAlerts.service;
+using APIAlerts.network;
+using APIAlerts.util;
 
 namespace APIAlerts;
 
-/// <summary>
-/// Provides methods to configure and send event using the APIAlerts service.
-/// Implements the singleton pattern.
-/// </summary>
-public static class Client
+internal interface IClient
 {
-    private static Lazy<IService> _defaultClient = new(() => new Service());
-    
-    /// <summary>
-    /// Sets a custom client for testing purposes.
-    /// </summary>
-    /// <param name="service">The custom client to use.</param>
-    internal static void SetClient(IService service) =>
-        _defaultClient = new Lazy<IService>(() => service);
+    void Configure(string apiKey, bool logging = true);
+    Task SendAsync(string? apiKey, Alert model);
+}
 
-    /// <summary>
-    /// Configures the APIAlerts client with the specified API key and debug mode.
-    /// </summary>
-    /// <param name="apiKey">The default API key to use in all requests.</param>
-    /// <param name="debug">Set true to enable debug logging.</param>
-    public static void Configure(string apiKey, bool debug = false) =>
-        _defaultClient.Value.Configure(apiKey, debug);
+internal class Client : IClient
+{
+    private readonly Endpoints _endpoints;
+    private string? _defaultApiKey;
+    private readonly Logger _logger = new();
 
-    /// <summary>
-    /// Sends an event synchronously in the background.
-    /// </summary>
-    /// <param name="alerts">The event to send. Cannot be null.</param>
-    public static void Send(Alert alerts)
+    internal Client(HttpClient? httpClient = null)
     {
-        Task.Run(() => _defaultClient.Value.SendAsync(null, alerts)).Wait();
-    }
-    
-    /// <summary>
-    /// Sends an event synchronously in the background.
-    /// </summary>
-    /// <param name="apiKey">API key override for a single send request.</param>
-    /// <param name="alerts">The event to send. Cannot be null.</param>
-    public static void SendWithApiKey(string apiKey, Alert alerts)
-    {
-        Task.Run(() => _defaultClient.Value.SendAsync(apiKey, alerts)).Wait();
+        _endpoints = new Endpoints(httpClient);
     }
 
-    /// <summary>
-    /// Sends an event asynchronously and waits for the result. Useful in serverless or script environments. Serverside should use Send()
-    /// </summary>
-    /// <param name="alerts">The event to send. Cannot be null.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
-    public static async Task SendAsync(Alert alerts)
+    public void Configure(string apiKey, bool logging)
     {
-        await _defaultClient.Value.SendAsync(null, alerts);
+        _defaultApiKey = apiKey;
+        _logger.Configure(logging);
     }
 
-    /// <summary>
-    /// Sends an event asynchronously and waits for the result. Useful in serverless or script environments. Serverside should use Send()
-    /// </summary>
-    /// <param name="apiKey">API key override for a single send request.</param>
-    /// <param name="alerts">The event to send. Cannot be null.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
-    public static async Task SendWithApiKeyAsync(string apiKey, Alert alerts)
+    public async Task SendAsync(string? apiKey, Alert model)
     {
-        await _defaultClient.Value.SendAsync(apiKey, alerts);
-    }
+        var useKey = apiKey ?? _defaultApiKey;
+
+        if (string.IsNullOrEmpty(useKey))
+        {
+            _logger.Error("API Key not provided. Use Configure() to set a default key, or pass the key as a parameter to the SendWithKey/SendWithKeySendAsync function.");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(model.Message))
+        {
+            _logger.Error("Message is required");
+            return;
+        }
+
+        var result = await _endpoints.SendEvent(useKey, model);
+        if (result.IsSuccess)
+        {
+            _logger.Success($"Alert sent to {result.Data?.Workspace ?? "?"} ({result.Data?.Channel ?? "?"}) successfully.");
+            var errors = result.Data?.Errors ?? new List<string>();
+            foreach (var error in errors)
+            {
+                _logger.Warning(error);
+            }
+            return;
+        }
         
+        _logger.Error(result.Error?.Message ?? "Unknown error");
+    }
 }

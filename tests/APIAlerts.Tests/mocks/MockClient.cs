@@ -1,8 +1,6 @@
-using APIAlerts.service;
-
 namespace APIAlerts.Tests.mocks;
 
-internal class MockService : IService
+internal class MockClient : IClient
 {
     public string? ApiKey { get; private set; }
     public bool Debug { get; private set; }

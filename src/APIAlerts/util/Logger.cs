@@ -2,11 +2,11 @@ namespace APIAlerts.util;
 
 internal class Logger
 {
-    private bool _debug;
+    private bool _logging;
 
-    internal void Configure(bool debug = false)
+    internal void Configure(bool logging)
     {
-        _debug = debug;
+        _logging = logging;
     }
 
     internal virtual void Success(string message)
@@ -26,7 +26,7 @@ internal class Logger
 
     private void Print(string message)
     {
-        if (_debug)
+        if (_logging)
         {
             Console.WriteLine(message);
         }

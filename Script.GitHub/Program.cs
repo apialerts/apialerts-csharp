@@ -1,5 +1,7 @@
 ﻿namespace Script.GitHub;
 
+using APIAlerts;
+
 class Program
 {
     static async Task Main(string[] args)
@@ -18,11 +20,11 @@ class Program
             return;
         }
 
-        APIAlerts.Client.Configure(apiKey, true);
+        Alerts.Configure(apiKey);
         
-        var alert = CreateEvent(build, release, publish);
+        var alert = CreateAlert(build, release, publish);
         // Using async here to ensure GitHub Actions will wait for the response before terminating the script early
-        await APIAlerts.Client.SendAsync(alert);
+        await Alerts.SendAsync(alert);
     }
 
     private static string? GetApiKey()
@@ -39,7 +41,7 @@ class Program
         return (build, release, publish);
     }
 
-    private static APIAlerts.Alert CreateEvent(bool build, bool release, bool publish)
+    private static Alert CreateAlert(bool build, bool release, bool publish)
     {
         var eventChannel = "developer";
         var eventMessage = "apialerts-csharp";
@@ -63,7 +65,7 @@ class Program
             eventTags = new[] { "CI/CD", "C#", "Deploy" };
         }
 
-        return new APIAlerts.Alert
+        return new Alert
         {
             Message = eventMessage,
             Channel = eventChannel,

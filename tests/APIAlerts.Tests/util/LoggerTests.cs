@@ -9,7 +9,7 @@ namespace APIAlerts.Tests.util
         public void Success_DebugEnabled_PrintsMessage()
         {
             var logger = new Logger();
-            logger.Configure(debug: true);
+            logger.Configure(true);
             using var sw = new StringWriter();
             Console.SetOut(sw);
 
@@ -23,7 +23,7 @@ namespace APIAlerts.Tests.util
         public void Warning_DebugEnabled_PrintsMessage()
         {
             var logger = new Logger();
-            logger.Configure(debug: true);
+            logger.Configure(true);
             using var sw = new StringWriter();
             Console.SetOut(sw);
 
@@ -37,7 +37,7 @@ namespace APIAlerts.Tests.util
         public void Error_DebugEnabled_PrintsMessage()
         {
             var logger = new Logger();
-            logger.Configure(debug: true);
+            logger.Configure(true);
             using var sw = new StringWriter();
             Console.SetOut(sw);
 
@@ -51,7 +51,7 @@ namespace APIAlerts.Tests.util
         public void Success_DebugDisabled_DoesNotPrintMessage()
         {
             var logger = new Logger();
-            logger.Configure(debug: false);
+            logger.Configure(false);
             using var sw = new StringWriter();
             Console.SetOut(sw);
 
@@ -64,7 +64,7 @@ namespace APIAlerts.Tests.util
         public void Warning_DebugDisabled_DoesNotPrintMessage()
         {
             var logger = new Logger();
-            logger.Configure(debug: false);
+            logger.Configure(false);
             using var sw = new StringWriter();
             Console.SetOut(sw);
 
@@ -77,7 +77,7 @@ namespace APIAlerts.Tests.util
         public void Error_DebugDisabled_DoesNotPrintMessage()
         {
             var logger = new Logger();
-            logger.Configure(debug: false);
+            logger.Configure(false);
             using var sw = new StringWriter();
             Console.SetOut(sw);
 

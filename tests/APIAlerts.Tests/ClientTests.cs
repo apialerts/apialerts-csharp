@@ -1,63 +1,114 @@
+using System.Net;
 using APIAlerts.Tests.mocks;
+using APIAlerts.util;
 using Xunit;
 
-namespace APIAlerts.Tests;
-
-public class ClientTests
+namespace APIAlerts.Tests
 {
-    [Fact]
-    public void Configure_SetsDefaultApiKeyAndDebugMode()
+    public class ClientTests
     {
-        var mockClient = new MockService();
-        Client.SetClient(mockClient);
+        [Fact]
+        public void Configure_SetsDefaultApiKey()
+        {
+            var client = new Client();
+            const string apiKey = "test-api-key";
 
-        Client.Configure("test-api-key", true);
+            client.Configure(apiKey, true);
 
-        Assert.Equal("test-api-key", mockClient.ApiKey);
-        Assert.True(mockClient.Debug);
+            // Use reflection to access the private field _defaultApiKey
+            var field = typeof(Client).GetField("_defaultApiKey", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var value = field?.GetValue(client) as string;
+
+            Assert.Equal(apiKey, value);
+        }
+
+        [Fact]
+        public async Task SendAsync_ValidRequest_LogsSuccess()
+        {
+            const HttpStatusCode statusCode = HttpStatusCode.OK;
+            const string response = "{\"workspace\":\"my-workspace\",\"channel\":\"my-channel\",\"errors\":[\"no\",\"errors\",\"here\"],\"extra\":\"property\"}";
+            var network = MockHttp.Client(statusCode, response);
+            var client = new Client(network);
+            client.Configure("test-api-key", true);
+
+            var logger = new TestLogger();
+            var loggerField = typeof(Client).GetField("_logger", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            loggerField?.SetValue(client, logger);
+
+            var alert = new Alert
+            {
+                Message = "test message"
+            };
+            await client.SendAsync(null, alert);
+
+            Assert.Contains("Alert sent to my-workspace (my-channel) successfully.", logger.Logs);
+        }
+
+        [Fact]
+        public async Task SendAsync_MissingApiKey_LogsError()
+        {
+            var client = new Client();
+            var logger = new TestLogger();
+            var loggerField = typeof(Client).GetField("_logger", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            loggerField?.SetValue(client, logger);
+            
+            var alert = new Alert
+            {
+                Message = "test message"
+            };
+            await client.SendAsync(null, alert);
+
+            Assert.Contains("API Key not provided. Use Configure() to set a default key, or pass the key as a parameter to the Send/SendAsync function.", logger.Logs);
+        }
+
+        [Fact]
+        public async Task SendAsync_EmptyMessage_LogsError()
+        {
+            var client = new Client();
+            client.Configure("test-api-key", true);
+
+            var logger = new TestLogger();
+            var loggerField = typeof(Client).GetField("_logger", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            loggerField?.SetValue(client, logger);
+
+            var alert = new Alert
+            {
+                Message = ""
+            };
+            await client.SendAsync(null, alert);
+
+            Assert.Contains("Message is required", logger.Logs);
+        }
+
+        [Fact]
+        public async Task SendAsync_InvalidRequest_LogsError()
+        {
+            const HttpStatusCode statusCode = HttpStatusCode.BadRequest;
+            const string response = "{\"message\":\"Bad Request\"}";
+            var network = MockHttp.Client(statusCode, response);
+            var client = new Client(network);
+            client.Configure("test-api-key", true);
+
+            var logger = new TestLogger();
+            var loggerField = typeof(Client).GetField("_logger", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            loggerField?.SetValue(client, logger);
+
+            var alert = new Alert
+            {
+                Message = "test message"
+            };
+            await client.SendAsync(null, alert);
+
+            Assert.Contains("Bad Request", logger.Logs);
+        }
     }
 
-    [Fact]
-    public void Send_ValidRequest_LogsSuccess()
+    internal class TestLogger : Logger
     {
-        var mockClient = new MockService();
-        Client.SetClient(mockClient);
+        public List<string> Logs { get; } = new();
 
-        var alert = new Alert
-        {
-            Message = "test message"
-        };
-        Client.Send(alert);
-        Assert.Null(mockClient.SentApiKey);
-        
-        Client.SendWithApiKey("test-api-key", alert);
-        
-        Assert.Equal("test-api-key", mockClient.SentApiKey);
-        Assert.Null(mockClient.SentChannel);
-        Assert.Equal("test message", mockClient.SentMessage);
-        Assert.Null(mockClient.SentTags);
-        Assert.Null(mockClient.SentLink);
-    }
-
-    [Fact]
-    public async Task SendAsync_ValidRequest_LogsSuccess()
-    {
-        var mockClient = new MockService();
-        Client.SetClient(mockClient);
-
-        var alert = new Alert
-        {
-            Message = "test message"
-        };
-        await Client.SendAsync(alert);
-        Assert.Null(mockClient.SentApiKey);
-
-        await Client.SendWithApiKeyAsync("test-api-key", alert);
-        
-        Assert.Equal("test-api-key", mockClient.SentApiKey);
-        Assert.Null(mockClient.SentChannel);
-        Assert.Equal("test message", mockClient.SentMessage);
-        Assert.Null(mockClient.SentTags);
-        Assert.Null(mockClient.SentLink);
+        internal override void Error(string message) => Logs.Add(message);
+        internal override void Success(string message) => Logs.Add(message);
+        internal override void Warning(string message) => Logs.Add(message);
     }
 }
