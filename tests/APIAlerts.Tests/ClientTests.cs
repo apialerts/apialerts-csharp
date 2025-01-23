@@ -58,7 +58,7 @@ namespace APIAlerts.Tests
             };
             await client.SendAsync(null, alert);
 
-            Assert.Contains("API Key not provided. Use Configure() to set a default key, or pass the key as a parameter to the Send/SendAsync function.", logger.Logs);
+            Assert.Contains("API Key not provided. Use Configure() to set a default key, or pass the key as a parameter to the SendWithKey/SendWithKeySendAsync function.", logger.Logs);
         }
 
         [Fact]
