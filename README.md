@@ -1,8 +1,6 @@
-# apialerts-csharp
+# API Alerts | C# Client
 
-C# client for the [apialerts.com](https://apialerts.com/) platform
-
-[Docs](https://apialerts.com/docs/csharp) • [GitHub](https://github.com/apialerts/apialerts-csharp) • [Nuget](https://www.nuget.org/packages/APIAlerts)
+[GitHub](https://github.com/apialerts/apialerts-csharp) • [Nuget](https://www.nuget.org/packages/APIAlerts)
 
 ### Overview
 
@@ -54,7 +52,3 @@ You may have the need to talk to different API Alerts workspaces in your applica
 ```csharp
 APIAlerts.Client.SendWithApiKey("other_api_key", alert);
 ```
-
-### Feedback & Support
-
-If you have any questions or feedback, please create an issue on our GitHub repository. We are always looking to improve our service and would love to hear from you. Thanks for using API Alerts!
