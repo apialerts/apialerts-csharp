@@ -1,6 +1,6 @@
-# API Alerts | C# Client
+# API Alerts • C# Client
 
-[GitHub](https://github.com/apialerts/apialerts-csharp) • [Nuget](https://www.nuget.org/packages/APIAlerts)
+[GitHub Repo](https://github.com/apialerts/apialerts-csharp) • [Nuget](https://www.nuget.org/packages/APIAlerts)
 
 ### Overview
 
