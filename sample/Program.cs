@@ -1,7 +1,11 @@
 using APIAlerts;
 
-var apiKey = Environment.GetEnvironmentVariable("APIALERTS_API_KEY")
-    ?? throw new Exception("APIALERTS_API_KEY not set");
+var apiKey = Environment.GetEnvironmentVariable("APIALERTS_API_KEY") ?? "";
+if (string.IsNullOrEmpty(apiKey))
+{
+    Console.Error.WriteLine("Error: APIALERTS_API_KEY environment variable is not set");
+    Environment.Exit(1);
+}
 
 // Parse flags: --build, --release, --publish (informational, no-args runs both tests)
 var isBuild   = args.Contains("--build");
@@ -25,7 +29,7 @@ if (minimalResult.Success)
 else
 {
     Console.Error.WriteLine($"x Error (minimal): {minimalResult.Error}");
-    return;
+    Environment.Exit(1);
 }
 
 // Full send — all fields
@@ -49,4 +53,5 @@ if (fullResult.Success)
 else
 {
     Console.Error.WriteLine($"x Error (full): {fullResult.Error}");
+    Environment.Exit(1);
 }
