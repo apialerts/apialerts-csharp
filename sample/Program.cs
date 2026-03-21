@@ -21,7 +21,7 @@ if (isBuild || isRelease || isPublish)
 Client.Configure(apiKey);
 
 // Minimal send — message only
-var minimalResult = await Client.SendAsync(new Event { Message = "C# SDK - minimal" });
+var minimalResult = await Client.SendAsync(new Event { Message = "C# SDK - minimal", Channel = "testing" });
 if (minimalResult.Success)
 {
     Console.WriteLine($"✓ sent to {minimalResult.Workspace} ({minimalResult.Channel})");
@@ -36,7 +36,7 @@ else
 var fullResult = await Client.SendAsync(new Event
 {
     Message  = "C# SDK - full",
-    Channel  = "developer",
+    Channel  = "testing",
     EventKey = "sdk.test",
     Title    = "Integration Test",
     Tags     = ["CI/CD", "C#"],
