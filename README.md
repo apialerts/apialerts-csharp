@@ -1,54 +1,91 @@
 # API Alerts • C# Client
 
-[GitHub Repo](https://github.com/apialerts/apialerts-csharp) • [Nuget](https://www.nuget.org/packages/APIAlerts)
+[![NuGet](https://img.shields.io/nuget/v/apialerts)](https://www.nuget.org/packages/apialerts)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-### Overview
+[NuGet](https://www.nuget.org/packages/apialerts) • [GitHub](https://github.com/apialerts/apialerts-csharp) • [API Alerts](https://apialerts.com)
 
-The APIAlerts NuGet package simplifies the process of setting up and managing alerts within your API projects. It provides functionalities to activate the package with an API key and offers methods for publishing alerts asynchronously and synchronously.
+Effortless project notifications. Send once, deliver everywhere.
 
-### Installation
+## Installation
 
-APIAlerts is available as a NuGet package. You can install it using the following command:
+```bash
+dotnet add package apialerts
+```
 
-````bash
-PM> Install-Package APIAlerts
-````
-
-### Initialize the client
-
-The client is implemented as a singleton, ensuring that only one instance is created and used throughout the application.
-
-
-````csharp
-// Initialise the ApiAlerts client with your API key
-APIAlerts.Client.Configure(yourApiKey);
-
-// You can enable debug mode to see logs messages using the additional debug parameter
-APIAlerts.Client.Configure(yourApiKey, true);
-````
-
-### Send Events
-
-You can send alerts by constructing the AlertEvent class and passing it to the Send() function.
+## Quick Start
 
 ```csharp
-var alert = new APIAlerts.Alert
+using APIAlerts;
+
+Client.Configure("your-api-key");
+await Client.Send(new Event { Message = "Deploy complete" });
+```
+
+## Usage
+
+### Global singleton (recommended)
+
+Call `Configure` once at startup, then use `Send` / `SendAsync` anywhere.
+
+```csharp
+using APIAlerts;
+
+Client.Configure("your-api-key");
+
+// Fire-and-forget — never throws
+await Client.Send(new Event { Message = "Deploy complete" });
+
+// Or get the result back — never throws
+var result = await Client.SendAsync(new Event { Message = "Deploy complete" });
+if (result.Success)
+    Console.WriteLine($"Sent to {result.Workspace} ({result.Channel})");
+else
+    Console.Error.WriteLine($"Error: {result.Error}");
+```
+
+### Event fields
+
+Only `Message` is required. All other fields are optional.
+
+```csharp
+var evt = new Event
 {
-    Message = "My alert message",       // required message
-    Channel = "my-channel-identifier",  // optional, uses the default channel if not provided
-    Tags = new[] { "tag1", "tag2" },    // optional
-    Link = "https://example.com"        // optional
+    Message  = "Deploy complete",
+    Channel  = "releases",
+    EventKey = "ci.deploy",
+    Title    = "Deployed",
+    Tags     = ["CI/CD", "C#"],
+    Link     = "https://github.com/apialerts/apialerts-csharp/actions",
+    Data     = new { version = "2.0.0" },
 };
-
-APIAlerts.Client.Send(alert);
 ```
 
-The APIAlerts.Client.SendAsync() methods are also available if you need to wait for a successful execution. However, the Send() functions are generally always preferred.
+| Field      | Type       | Required | Description                      |
+|------------|------------|----------|----------------------------------|
+| `Message`  | `string`   | Yes      | Main notification message        |
+| `Channel`  | `string`   | No       | Target channel name              |
+| `EventKey` | `string`   | No       | Event key (e.g. `ci.deploy`)     |
+| `Title`    | `string`   | No       | Short title                      |
+| `Tags`     | `string[]` | No       | Categorisation tags              |
+| `Link`     | `string`   | No       | URL attached to the notification |
+| `Data`     | `object`   | No       | Arbitrary key-value metadata     |
 
-### Send with API Key functions
+### Instance-based client
 
-You may have the need to talk to different API Alerts workspaces in your application. You can use the SendWithApiKey() functions to send alerts to override the default API key for that single send call.
+Use `ApiAlertsClient` directly when you need multiple clients or full
+lifecycle control.
 
 ```csharp
-APIAlerts.Client.SendWithApiKey("other_api_key", alert);
+var client = new ApiAlertsClient("your-api-key", debug: true);
+var result = await client.SendAsync(new Event { Message = "Deploy complete" });
+if (result.Success)
+    Console.WriteLine($"Sent to {result.Workspace} ({result.Channel})");
 ```
+
+## Links
+
+- [Documentation](https://apialerts.com/docs)
+- [Sign up](https://apialerts.com)
+- [GitHub Issues](https://github.com/apialerts/apialerts-csharp/issues)
+- [NuGet Package](https://www.nuget.org/packages/apialerts)

@@ -1,6 +1,4 @@
-﻿namespace Script.GitHub;
-
-using APIAlerts;
+namespace Script.GitHub;
 
 class Program
 {
@@ -13,64 +11,63 @@ class Program
             return;
         }
 
-        var apiKey = GetApiKey();
+        var apiKey = Environment.GetEnvironmentVariable("APIALERTS_API_KEY");
         if (string.IsNullOrEmpty(apiKey))
         {
-            Console.WriteLine("Error: APIALERTS_API_KEY environment variable is not set");
+            Console.Error.WriteLine("Error: APIALERTS_API_KEY environment variable is not set");
             return;
         }
 
-        Alerts.Configure(apiKey);
-        
-        var alert = CreateAlert(build, release, publish);
-        // Using async here to ensure GitHub Actions will wait for the response before terminating the script early
-        await Alerts.SendAsync(alert);
-    }
+        APIAlerts.Client.Configure(apiKey);
 
-    private static string? GetApiKey()
-    {
-        return Environment.GetEnvironmentVariable("APIALERTS_API_KEY");
+        // Minimal send
+        var minimal = await APIAlerts.Client.SendAsync(new APIAlerts.Event { Message = "C# SDK sample - minimal" });
+        Console.WriteLine($"Minimal alert sent to {minimal.Workspace} ({minimal.Channel})");
+
+        // Full send
+        var evt = CreateEvent(build, release, publish);
+        var result = await APIAlerts.Client.SendAsync(evt);
+        Console.WriteLine($"Alert sent to {result.Workspace} ({result.Channel})");
     }
 
     private static (bool build, bool release, bool publish) ParseFlags(string[] args)
     {
         var flags = new HashSet<string>(args);
-        var build = flags.Contains("build");
-        var release = flags.Contains("release");
-        var publish = flags.Contains("publish");
-        return (build, release, publish);
+        return (flags.Contains("build"), flags.Contains("release"), flags.Contains("publish"));
     }
 
-    private static Alert CreateAlert(bool build, bool release, bool publish)
+    private static APIAlerts.Event CreateEvent(bool build, bool release, bool publish)
     {
-        var eventChannel = "developer";
-        var eventMessage = "apialerts-csharp";
-        var eventTags = Array.Empty<string>();
-        const string eventLink = "https://github.com/apialerts/apialerts-csharp/actions";
+        const string link = "https://github.com/apialerts/apialerts-csharp/actions";
 
-        if (build)
+        if (build) return new APIAlerts.Event
         {
-            eventMessage = "C# - PR build success";
-            eventTags = new[] { "CI/CD", "C#", "Build" };
-        }
-        else if (release)
-        {
-            eventMessage = "C# - Build for publish success";
-            eventTags = new[] { "CI/CD", "C#", "Build" };
-        }
-        else if (publish)
-        {
-            eventChannel = "releases";
-            eventMessage = "C# - NuGet publish success";
-            eventTags = new[] { "CI/CD", "C#", "Deploy" };
-        }
+            Channel  = "developer",
+            EventKey = "ci.build",
+            Title    = "Build Passed",
+            Message  = "C# - PR build success",
+            Tags     = ["CI/CD", "C#", "Build"],
+            Link     = link,
+        };
 
-        return new Alert
+        if (release) return new APIAlerts.Event
         {
-            Message = eventMessage,
-            Channel = eventChannel,
-            Tags = eventTags,
-            Link = eventLink
+            Channel  = "developer",
+            EventKey = "ci.release",
+            Title    = "Release Built",
+            Message  = "C# - Build for publish success",
+            Tags     = ["CI/CD", "C#", "Build"],
+            Link     = link,
+        };
+
+        return new APIAlerts.Event
+        {
+            Channel  = "releases",
+            EventKey = "ci.publish",
+            Title    = "Published",
+            Message  = "C# - NuGet publish success",
+            Tags     = ["CI/CD", "C#", "Deploy"],
+            Link     = link,
         };
     }
 }

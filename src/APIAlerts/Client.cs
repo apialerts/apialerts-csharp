@@ -1,59 +1,63 @@
-using APIAlerts.network;
-using APIAlerts.util;
-
 namespace APIAlerts;
 
-internal interface IClient
+/// <summary>
+/// Global singleton facade for the API Alerts client.
+/// Call <see cref="Configure"/> once at startup, then use
+/// <see cref="Send"/> or <see cref="SendAsync"/> anywhere in your app.
+/// </summary>
+public static class Client
 {
-    void Configure(string apiKey, bool logging = true);
-    Task SendAsync(string? apiKey, Alert model);
-}
+    private static ApiAlertsClient? _instance;
 
-internal class Client : IClient
-{
-    private readonly Endpoints _endpoints;
-    private string? _defaultApiKey;
-    private readonly Logger _logger = new();
+    /// <summary>Initialise the global client. Subsequent calls are no-ops.</summary>
+    public static void Configure(string apiKey, bool debug = false, HttpClient? httpClient = null) =>
+        _instance ??= new ApiAlertsClient(apiKey, debug, httpClient);
 
-    internal Client(HttpClient? httpClient = null)
+    /// <summary>
+    /// Override the integration name, version, and base URL on the global client.
+    /// No-op if <see cref="Configure"/> has not been called yet.
+    /// </summary>
+    public static void SetOverrides(string integration, string version, string baseUrl) =>
+        _instance?.SetOverrides(integration, version, baseUrl);
+
+    /// <summary>
+    /// Send an event — fire-and-forget. Logs to Console.Error and returns if not configured.
+    /// Never throws.
+    /// </summary>
+    public static async Task Send(Event evt)
     {
-        _endpoints = new Endpoints(httpClient);
-    }
-
-    public void Configure(string apiKey, bool logging)
-    {
-        _defaultApiKey = apiKey;
-        _logger.Configure(logging);
-    }
-
-    public async Task SendAsync(string? apiKey, Alert model)
-    {
-        var useKey = apiKey ?? _defaultApiKey;
-
-        if (string.IsNullOrEmpty(useKey))
+        if (_instance is null)
         {
-            _logger.Error("API Key not provided. Use Configure() to set a default key, or pass the key as a parameter to the SendWithKey/SendWithKeySendAsync function.");
+            await Console.Error.WriteLineAsync("x (apialerts.com) Error: client not configured");
             return;
         }
-
-        if (string.IsNullOrWhiteSpace(model.Message))
-        {
-            _logger.Error("Message is required");
-            return;
-        }
-
-        var result = await _endpoints.SendEvent(useKey, model);
-        if (result.IsSuccess)
-        {
-            _logger.Success($"Alert sent to {result.Data?.Workspace ?? "?"} ({result.Data?.Channel ?? "?"}) successfully.");
-            var errors = result.Data?.Errors ?? new List<string>();
-            foreach (var error in errors)
-            {
-                _logger.Warning(error);
-            }
-            return;
-        }
-        
-        _logger.Error(result.Error?.Message ?? "Unknown error");
+        await _instance.Send(evt);
     }
+
+    /// <summary>
+    /// Send an event and return a <see cref="SendResult"/>.
+    /// Returns a failure result if not configured.
+    /// Never throws.
+    /// </summary>
+    public static async Task<SendResult> SendAsync(Event evt)
+    {
+        if (_instance is null)
+            return new SendResult { Success = false, Error = "client not configured" };
+        return await _instance.SendAsync(evt);
+    }
+
+    /// <summary>
+    /// Send an event using an explicit API key and return a <see cref="SendResult"/>.
+    /// Returns a failure result if not configured.
+    /// Never throws.
+    /// </summary>
+    public static async Task<SendResult> SendWithKey(string apiKey, Event evt)
+    {
+        if (_instance is null)
+            return new SendResult { Success = false, Error = "client not configured" };
+        return await _instance.SendWithKey(apiKey, evt);
+    }
+
+    /// <summary>Resets the global client. For use in tests only.</summary>
+    internal static void Reset() => _instance = null;
 }

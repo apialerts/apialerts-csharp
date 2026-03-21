@@ -5,11 +5,11 @@ namespace APIAlerts.network.contract;
 internal class EventResponse
 {
     [JsonPropertyName("workspace")]
-    public string? Workspace { get; set; }
-    
+    public string Workspace { get; set; } = string.Empty;
+
     [JsonPropertyName("channel")]
-    public string? Channel { get; set; }
-    
-    [JsonPropertyName("errors")]
-    public List<string>? Errors { get; set; }
+    public string Channel { get; set; } = string.Empty;
+
+    [JsonPropertyName("warnings")]
+    public List<string>? Warnings { get; set; }
 }

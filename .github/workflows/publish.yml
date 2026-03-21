@@ -1,0 +1,25 @@
+name: Publish to NuGet
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0'
+      - name: Test
+        run: dotnet test --verbosity normal
+      - name: Pack
+        run: dotnet pack src/APIAlerts/APIAlerts.csproj --configuration Release --output ./nupkg
+      - name: Publish to NuGet
+        run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+      - name: Notify
+        run: dotnet run --project Script.GitHub/Script.GitHub.csproj -- publish
+        env:
+          APIALERTS_API_KEY: ${{ secrets.APIALERTS_API_KEY }}

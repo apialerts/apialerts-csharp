@@ -1,22 +1,22 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Title>API Alerts</Title>
     <Authors>API Alerts</Authors>
+    <Version>2.0.0</Version>
+    <Description>C# client for the API Alerts notification platform. Effortless project notifications — send once, deliver everywhere.</Description>
+    <Summary>C# client for the API Alerts notification platform.</Summary>
+    <Copyright>Copyright © API Alerts 2025</Copyright>
+    <PackageTags>apialerts notifications alerts monitoring push</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://apialerts.com/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/apialerts/apialerts-csharp</RepositoryUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
-    <Version>1.0.0-alpha4</Version>
     <RootNamespace>APIAlerts</RootNamespace>
-    <Description>Python wrapper for the apialerts.com service</Description>
-    <Summary>Python wrapper for the apialerts.com service</Summary>
-    <Copyright>Copyright © API Alerts 2025</Copyright>
-    <PackageTags>API Alerts Push Notifications Monitoring</PackageTags>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
