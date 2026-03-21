@@ -4,7 +4,7 @@ on:
   pull_request:
     branches:
       - main
-    
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,14 +15,14 @@ jobs:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '6.0.x'
+          dotnet-version: '8.0'
       - name: Build
         run: dotnet build -c Release src/APIAlerts/APIAlerts.csproj
       - name: Test
         run: dotnet test --verbosity normal
-      - name: Pack NuGets
-        run: dotnet pack -c Release src/APIAlerts/APIAlerts.csproj --no-build --output .
+      - name: Pack
+        run: dotnet pack src/APIAlerts/APIAlerts.csproj -c Release --no-build --output ./nupkg
       - name: Notify
-        run: dotnet run --project Script.GitHub/Script.GitHub.csproj -- build
+        run: dotnet run --project sample/ApiAlerts.Sample.csproj -- --build
         env:
           APIALERTS_API_KEY: ${{ secrets.APIALERTS_API_KEY }}

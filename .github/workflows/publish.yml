@@ -20,6 +20,6 @@ jobs:
       - name: Publish to NuGet
         run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
       - name: Notify
-        run: dotnet run --project Script.GitHub/Script.GitHub.csproj -- publish
+        run: dotnet run --project sample/ApiAlerts.Sample.csproj -- --publish
         env:
           APIALERTS_API_KEY: ${{ secrets.APIALERTS_API_KEY }}
