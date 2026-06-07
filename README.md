@@ -1,54 +1,201 @@
-# API Alerts • C# Client
+# API Alerts • C# / .NET / Unity / Godot Client
 
-[GitHub Repo](https://github.com/apialerts/apialerts-csharp) • [Nuget](https://www.nuget.org/packages/APIAlerts)
+[![NuGet](https://img.shields.io/nuget/v/apialerts)](https://www.nuget.org/packages/apialerts)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-### Overview
+[NuGet](https://www.nuget.org/packages/apialerts) • [GitHub](https://github.com/apialerts/apialerts-csharp) • [API Alerts](https://apialerts.com)
 
-The APIAlerts NuGet package simplifies the process of setting up and managing alerts within your API projects. It provides functionalities to activate the package with an API key and offers methods for publishing alerts asynchronously and synchronously.
+Effortless project notifications. Send once, deliver everywhere.
 
-### Installation
+Targets `netstandard2.0` and `net10.0`. Works in:
 
-APIAlerts is available as a NuGet package. You can install it using the following command:
+- **.NET 10 / .NET 8** (ASP.NET Core, Blazor, Azure Functions, console apps)
+- **.NET Framework 4.6.1+** and **Mono**
+- **Unity** (2018+, both Mono and IL2CPP backends)
+- **Godot** C# projects
 
-````bash
-PM> Install-Package APIAlerts
-````
+## Installation
 
-### Initialize the client
+### .NET
 
-The client is implemented as a singleton, ensuring that only one instance is created and used throughout the application.
+```bash
+dotnet add package apialerts
+```
 
+### Unity
 
-````csharp
-// Initialise the ApiAlerts client with your API key
-APIAlerts.Client.Configure(yourApiKey);
+NuGet packages don't import into Unity natively. Two options:
 
-// You can enable debug mode to see logs messages using the additional debug parameter
-APIAlerts.Client.Configure(yourApiKey, true);
-````
+1. **[NuGetForUnity](https://github.com/GlitchEnzo/NuGetForUnity)** (recommended) - install the tool, search for `apialerts`, click install.
+2. **Direct DLL drop** - download the latest `.nupkg` from [NuGet](https://www.nuget.org/packages/apialerts), rename to `.zip`, extract the `netstandard2.0/APIAlerts.dll`, and drop it into `Assets/Plugins/` in your Unity project.
 
-### Send Events
+### Godot (C#)
 
-You can send alerts by constructing the AlertEvent class and passing it to the Send() function.
+```bash
+dotnet add package apialerts
+```
+
+Standard .NET tooling works in Godot C# projects.
+
+## Quick Start
 
 ```csharp
-var alert = new APIAlerts.Alert
+using APIAlerts;
+
+ApiAlerts.Configure("your-api-key");
+await ApiAlerts.SendAsync(new Event { Message = "Deploy complete" });
+```
+
+## Usage
+
+### Global singleton
+
+Call `Configure` once at startup, then use `Send` / `SendAsync` anywhere.
+
+```csharp
+using APIAlerts;
+
+ApiAlerts.Configure("your-api-key");
+
+// Fire-and-forget. Never throws, drops errors silently unless debug is on.
+ApiAlerts.Send(new Event { Message = "Deploy complete" });
+
+// Awaitable. Never throws, check result.Success.
+var result = await ApiAlerts.SendAsync(new Event { Message = "Deploy complete" });
+if (result.Success)
+    Console.WriteLine($"Sent to {result.Workspace} ({result.Channel})");
+else
+    Console.Error.WriteLine($"Error: {result.Error}");
+```
+
+### Dependency injection
+
+Register `IApiAlertsClient` and inject it:
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+
+builder.Services.AddApiAlerts("your-api-key");
+```
+
+```csharp
+public class DeployNotifier(IApiAlertsClient alerts)
 {
-    Message = "My alert message",       // required message
-    Channel = "my-channel-identifier",  // optional, uses the default channel if not provided
-    Tags = new[] { "tag1", "tag2" },    // optional
-    Link = "https://example.com"        // optional
+    public Task Notify() => alerts.SendAsync(new Event { Message = "Deploy complete" });
+}
+```
+
+Or construct one directly, no container:
+
+```csharp
+IApiAlertsClient alerts = new ApiAlertsClient("your-api-key");
+```
+
+`AddApiAlerts` routes SDK logs through the app's `ILoggerFactory`. Use the instance client for DI, mocking, or multiple keys; the `ApiAlerts` singleton stays for quick one-off use.
+
+### Enable debug logging
+
+```csharp
+ApiAlerts.Configure("your-api-key", debug: true);
+```
+
+The SDK uses `Microsoft.Extensions.Logging.ILogger`. By default it logs to `NullLogger.Instance` (silent). Inject your application's logger to surface SDK output:
+
+```csharp
+ApiAlerts.Configure(
+    "your-api-key",
+    debug: true,
+    logger: serviceProvider.GetRequiredService<ILogger<Program>>()
+);
+```
+
+Critical errors (missing API key, not configured) always log regardless of the `debug` flag.
+
+### Custom HttpClient
+
+Inject your own `HttpClient` to share connection pools, plug in handlers (Polly, retry, proxy), or route through `IHttpClientFactory`:
+
+```csharp
+ApiAlerts.Configure(
+    "your-api-key",
+    httpClient: httpClientFactory.CreateClient("apialerts")
+);
+```
+
+If you don't provide one, the SDK creates an `HttpClient` with a 30-second timeout.
+
+### Event fields
+
+Only `Message` is required. All other fields are optional and omitted from the JSON payload when null.
+
+```csharp
+var evt = new Event
+{
+    Message  = "Deploy complete",
+    Channel  = "releases",
+    EventKey = "ci.deploy.success",
+    Title    = "Deployed",
+    Tags     = new[] { "CI/CD", "C#" },
+    Link     = "https://github.com/apialerts/apialerts-csharp/actions",
+    Data     = new { version = "1.0.0" },
 };
 
-APIAlerts.Client.Send(alert);
+await ApiAlerts.SendAsync(evt);
 ```
 
-The APIAlerts.Client.SendAsync() methods are also available if you need to wait for a successful execution. However, the Send() functions are generally always preferred.
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `Message` | `string` | Yes | Human-readable notification text. This is what appears on the push notification lock screen. |
+| `Channel` | `string` | No | Workspace channel the push notification fires on. Defaults to the workspace default channel when omitted. |
+| `EventKey` | `string` | No | Identifies what kind of thing happened. Optional but recommended. Use dotted notation (e.g. `ci.deploy.success`, `payment.failed`, `user.signup`) so routing rules can match glob patterns like `ci.*` or `*.failed`. Serialised as `event` over the wire. |
+| `Title` | `string` | No | Short headline some destinations render separately from the message body. |
+| `Tags` | `string[]` | No | Categorisation tags for filtering and search. |
+| `Link` | `string` | No | URL associated with the event. Available as a deeplink for push notifications and as a call-to-action for routed destinations. |
+| `Data` | `object` | No | Arbitrary key-value metadata. Available to non-push destinations for templating (Slack message bodies, email templates, webhook payloads). |
 
-### Send with API Key functions
+### Send to multiple workspaces
 
-You may have the need to talk to different API Alerts workspaces in your application. You can use the SendWithApiKey() functions to send alerts to override the default API key for that single send call.
+Pass an `apiKey` as the optional last argument to override the configured key for a single call.
 
 ```csharp
-APIAlerts.Client.SendWithApiKey("other_api_key", alert);
+ApiAlerts.Send(new Event { Message = "Deploy complete" }, apiKey: "other-workspace-api-key");
+
+var result = await ApiAlerts.SendAsync(
+    new Event { Message = "Deploy complete" },
+    apiKey: "other-workspace-api-key"
+);
 ```
+
+## API
+
+| Method | Description |
+|---|---|
+| `ApiAlerts.Configure(apiKey, debug, logger, httpClient)` | Initialise the singleton. First call wins; subsequent calls are no-ops. |
+| `ApiAlerts.Send(evt, apiKey)` | Fire-and-forget. Never throws, drops errors silently unless `debug` is on. |
+| `ApiAlerts.SendAsync(evt, apiKey)` | Awaitable, returns `SendResult`. Never throws. |
+| `new ApiAlertsClient(apiKey, debug, logger, httpClient)` | Construct an instance (implements `IApiAlertsClient`) for DI, mocking, or multiple keys. |
+| `services.AddApiAlerts(apiKey, debug)` | Register `IApiAlertsClient` as a singleton in a DI container. |
+
+### SendResult fields
+
+| Field | Type | Description |
+|---|---|---|
+| `Success` | `bool` | `true` if delivered |
+| `Workspace` | `string?` | Workspace name (present on success) |
+| `Channel` | `string?` | Channel name (present on success) |
+| `Warnings` | `IReadOnlyList<string>` | Non-fatal server warnings |
+| `Error` | `string?` | Error message (present on failure) |
+
+## Game dev use cases
+
+- **Unity build pipelines**: ping Slack/Discord/your phone when a Unity Cloud Build finishes
+- **Godot CI**: notifications when GitHub Actions builds your `.pck` or exports finish
+- **Live ops**: server-side alerts when a player triggers a webhook, crash report hooks
+- **In-editor scripts**: long-running asset import notifications
+
+## Links
+
+- [Documentation](https://apialerts.com/docs/sdks/csharp)
+- [Sign up](https://apialerts.com)
+- [GitHub Issues](https://github.com/apialerts/apialerts-csharp/issues)
+- [NuGet Package](https://www.nuget.org/packages/apialerts)

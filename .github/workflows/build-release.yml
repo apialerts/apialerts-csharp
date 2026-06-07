@@ -4,26 +4,27 @@ on:
   push:
     branches:
       - main
-    
+
 jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '6.0.x'
+          dotnet-version: |
+            8.0.x
+            10.0.x
       - name: Build
         run: dotnet build -c Release src/APIAlerts/APIAlerts.csproj
       - name: Test
         run: dotnet test --verbosity normal
-      - name: Pack NuGets
-        run: dotnet pack -c Release src/APIAlerts/APIAlerts.csproj --no-build --output .
+      - name: Pack
+        run: dotnet pack src/APIAlerts/APIAlerts.csproj -c Release --no-build --output ./nupkg
       - name: Notify
-        run: dotnet run --project Script.GitHub/Script.GitHub.csproj -- release
+        run: dotnet run --project sample/ApiAlerts.Sample.csproj -- --release
         env:
           APIALERTS_API_KEY: ${{ secrets.APIALERTS_API_KEY }}
-        

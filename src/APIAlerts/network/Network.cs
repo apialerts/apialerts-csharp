@@ -1,62 +1,86 @@
 using System.Net;
 using System.Net.Http.Json;
-using System.Text.Json;
 using APIAlerts.network.contract;
-using APIAlerts.util;
 
 namespace APIAlerts.network;
 
 internal class Network
 {
     private readonly HttpClient _httpClient;
+    private string _integration = Constants.IntegrationName;
+    private string _version = Constants.Version;
+    private string _baseUrl = Constants.ApiUrl;
 
     internal Network(HttpClient? httpClient = null)
     {
-        _httpClient = httpClient ?? new HttpClient
-        {
-            BaseAddress = new Uri(Constants.BaseUrl)
-        };
+        _httpClient = httpClient ?? new HttpClient { Timeout = TimeSpan.FromSeconds(Constants.TimeoutSeconds) };
     }
 
-    internal async Task<Result<T>> ApiRequest<T>(string apiKey, HttpMethod method, string route, object? payload)
+    internal void SetOverrides(string integration, string version, string baseUrl)
+    {
+        _integration = integration;
+        _version = version;
+        _baseUrl = baseUrl;
+    }
+
+    internal async Task<SendResult> PostEvent(string apiKey, Event evt)
     {
         try
         {
-            using var request = new HttpRequestMessage(method, route);
+            var payload = new EventRequest
+            {
+                Message = evt.Message,
+                Channel = evt.Channel,
+                Event = evt.EventKey,
+                Title = evt.Title,
+                Tags = evt.Tags,
+                Link = evt.Link,
+                Data = evt.Data,
+            };
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, _baseUrl);
             request.Headers.Add("Authorization", $"Bearer {apiKey}");
-            request.Headers.Add("X-Integration", Constants.IntegrationName);
-            request.Headers.Add("X-Version", Constants.Version);
+            request.Headers.Add("X-Integration", _integration);
+            request.Headers.Add("X-Version", _version);
+            request.Content = JsonContent.Create(payload, options: Json.JsonOptions);
 
-            if (payload != null)
+            var response = await _httpClient.SendAsync(request).ConfigureAwait(false);
+
+            return (int)response.StatusCode switch
             {
-                request.Content = JsonContent.Create(payload, options: Json.JsonOptions);
-            }
+                200 => await ParseSuccess(response).ConfigureAwait(false),
+                400 => new SendResult { Success = false, Error = "bad request" },
+                401 => new SendResult { Success = false, Error = "unauthorized, check your api key" },
+                403 => new SendResult { Success = false, Error = "forbidden" },
+                429 => new SendResult { Success = false, Error = "rate limit exceeded" },
+                _ => new SendResult { Success = false, Error = $"unexpected status: {(int)response.StatusCode}" },
+            };
+        }
+        catch (Exception)
+        {
+            return new SendResult { Success = false, Error = "invalid response from server" };
+        }
+    }
 
-            var response = await _httpClient.SendAsync(request);
+    private static async Task<SendResult> ParseSuccess(HttpResponseMessage response)
+    {
+        try
+        {
+            var body = await response.Content.ReadFromJsonAsync<EventResponse>(Json.JsonOptions).ConfigureAwait(false);
+            if (body is null)
+                return new SendResult { Success = false, Error = "invalid response from server" };
 
-            if (response.StatusCode == HttpStatusCode.OK)
+            return new SendResult
             {
-                var success = await response.Content.ReadFromJsonAsync<T>(Json.JsonOptions);
-                if (success != null)
-                {
-                    return Result<T>.Success(success);
-                }
-            }
-            
-            var error = await response.Content.ReadFromJsonAsync<ErrorResponse>(Json.JsonOptions);
-            return Result<T>.Failure(error ?? new ErrorResponse { Message = "Unknown response" });
+                Success = true,
+                Workspace = body.Workspace,
+                Channel = body.Channel,
+                Warnings = body.Warnings ?? new List<string>(),
+            };
         }
-        catch (JsonException)
+        catch (Exception)
         {
-            return Result<T>.Failure(new ErrorResponse { Message = "Failed to deserialize response" });
-        }
-        catch (TaskCanceledException)
-        {
-            return Result<T>.Failure(new ErrorResponse { Message = "Request cancelled" });
-        }
-        catch (Exception ex)
-        {
-            return Result<T>.Failure(new ErrorResponse { Message = $"Unknown error: {ex.Message}" });
+            return new SendResult { Success = false, Error = "invalid response from server" };
         }
     }
 }
