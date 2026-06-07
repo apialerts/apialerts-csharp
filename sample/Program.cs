@@ -15,13 +15,13 @@ var isIntegrationTests = args.Contains("--integration-tests");
 var channelIdx = Array.IndexOf(args, "--channel");
 var channel    = channelIdx >= 0 && channelIdx + 1 < args.Length ? args[channelIdx + 1] : "testing";
 
-Client.Configure(apiKey);
+ApiAlerts.Configure(apiKey);
 
 var link = "https://github.com/apialerts/apialerts-csharp/actions";
 
 if (isBuild)
 {
-    var result = await Client.SendAsync(new Event
+    var result = await ApiAlerts.SendAsync(new Event
     {
         Message  = "C# SDK - PR build success",
         Channel  = "developer",
@@ -40,7 +40,7 @@ if (isBuild)
 }
 else if (isRelease)
 {
-    var result = await Client.SendAsync(new Event
+    var result = await ApiAlerts.SendAsync(new Event
     {
         Message  = "C# SDK - Build for publish success",
         Channel  = "developer",
@@ -59,7 +59,7 @@ else if (isRelease)
 }
 else if (isPublish)
 {
-    var result = await Client.SendAsync(new Event
+    var result = await ApiAlerts.SendAsync(new Event
     {
         Message  = "C# SDK - NuGet publish success",
         Channel  = "releases",
@@ -78,7 +78,7 @@ else if (isPublish)
 }
 else if (isIntegrationTests)
 {
-    var minimalResult = await Client.SendAsync(new Event { Message = "C# SDK - minimal", Channel = channel });
+    var minimalResult = await ApiAlerts.SendAsync(new Event { Message = "C# SDK - minimal", Channel = channel });
     if (minimalResult.Success)
         Console.WriteLine($"✓ sent to {minimalResult.Workspace} ({minimalResult.Channel})");
     else
@@ -87,7 +87,7 @@ else if (isIntegrationTests)
         Environment.Exit(1);
     }
 
-    var fullResult = await Client.SendAsync(new Event
+    var fullResult = await ApiAlerts.SendAsync(new Event
     {
         Message  = "C# SDK - full",
         Channel  = channel,

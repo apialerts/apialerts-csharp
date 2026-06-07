@@ -18,15 +18,15 @@ class Program
             return;
         }
 
-        APIAlerts.Client.Configure(apiKey);
+        APIAlerts.ApiAlerts.Configure(apiKey);
 
         // Minimal send
-        var minimal = await APIAlerts.Client.SendAsync(new APIAlerts.Event { Message = "C# SDK sample - minimal" });
+        var minimal = await APIAlerts.ApiAlerts.SendAsync(new APIAlerts.Event { Message = "C# SDK sample - minimal" });
         Console.WriteLine($"Minimal alert sent to {minimal.Workspace} ({minimal.Channel})");
 
         // Full send
         var evt = CreateEvent(build, release, publish);
-        var result = await APIAlerts.Client.SendAsync(evt);
+        var result = await APIAlerts.ApiAlerts.SendAsync(evt);
         Console.WriteLine($"Alert sent to {result.Workspace} ({result.Channel})");
     }
 
