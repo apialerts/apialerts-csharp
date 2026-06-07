@@ -42,32 +42,32 @@ class Program
 
         if (build) return new APIAlerts.Event
         {
-            Channel  = "developer",
-            EventKey = "ci.build",
-            Title    = "Build Passed",
-            Message  = "C# - PR build success",
-            Tags     = ["CI/CD", "C#", "Build"],
-            Link     = link,
+            Channel = "developer",
+            EventKey = "ci.sdk.build.csharp",
+            Title = "Build Passed",
+            Message = "C# - PR build success",
+            Tags = ["CI/CD", "C#", "Build"],
+            Link = link,
         };
 
         if (release) return new APIAlerts.Event
         {
-            Channel  = "developer",
-            EventKey = "ci.release",
-            Title    = "Release Built",
-            Message  = "C# - Build for publish success",
-            Tags     = ["CI/CD", "C#", "Build"],
-            Link     = link,
+            Channel = "developer",
+            EventKey = "ci.sdk.release.csharp",
+            Title = "Release Built",
+            Message = "C# - Build for publish success",
+            Tags = ["CI/CD", "C#", "Build"],
+            Link = link,
         };
 
         return new APIAlerts.Event
         {
-            Channel  = "releases",
-            EventKey = "ci.publish",
-            Title    = "Published",
-            Message  = "C# - NuGet publish success",
-            Tags     = ["CI/CD", "C#", "Deploy"],
-            Link     = link,
+            Channel = "releases",
+            EventKey = "ci.sdk.publish.csharp",
+            Title = "Published",
+            Message = "C# - NuGet publish success",
+            Tags = ["CI/CD", "C#", "Deploy"],
+            Link = link,
         };
     }
 }

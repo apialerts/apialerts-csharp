@@ -13,7 +13,7 @@ internal class Network
 
     internal Network(HttpClient? httpClient = null)
     {
-        _httpClient = httpClient ?? new HttpClient();
+        _httpClient = httpClient ?? new HttpClient { Timeout = TimeSpan.FromSeconds(Constants.TimeoutSeconds) };
     }
 
     internal void SetOverrides(string integration, string version, string baseUrl)
@@ -31,11 +31,11 @@ internal class Network
             {
                 Message = evt.Message,
                 Channel = evt.Channel,
-                Event   = evt.EventKey,
-                Title   = evt.Title,
-                Tags    = evt.Tags,
-                Link    = evt.Link,
-                Data    = evt.Data,
+                Event = evt.EventKey,
+                Title = evt.Title,
+                Tags = evt.Tags,
+                Link = evt.Link,
+                Data = evt.Data,
             };
 
             using var request = new HttpRequestMessage(HttpMethod.Post, _baseUrl);
@@ -44,15 +44,15 @@ internal class Network
             request.Headers.Add("X-Version", _version);
             request.Content = JsonContent.Create(payload, options: Json.JsonOptions);
 
-            var response = await _httpClient.SendAsync(request);
+            var response = await _httpClient.SendAsync(request).ConfigureAwait(false);
 
-            return response.StatusCode switch
+            return (int)response.StatusCode switch
             {
-                HttpStatusCode.OK           => await ParseSuccess(response),
-                HttpStatusCode.BadRequest   => new SendResult { Success = false, Error = "bad request" },
-                HttpStatusCode.Unauthorized => new SendResult { Success = false, Error = "unauthorized — check your api key" },
-                HttpStatusCode.Forbidden    => new SendResult { Success = false, Error = "forbidden" },
-                HttpStatusCode.TooManyRequests => new SendResult { Success = false, Error = "rate limit exceeded" },
+                200 => await ParseSuccess(response).ConfigureAwait(false),
+                400 => new SendResult { Success = false, Error = "bad request" },
+                401 => new SendResult { Success = false, Error = "unauthorized, check your api key" },
+                403 => new SendResult { Success = false, Error = "forbidden" },
+                429 => new SendResult { Success = false, Error = "rate limit exceeded" },
                 _ => new SendResult { Success = false, Error = $"unexpected status: {(int)response.StatusCode}" },
             };
         }
@@ -66,16 +66,16 @@ internal class Network
     {
         try
         {
-            var body = await response.Content.ReadFromJsonAsync<EventResponse>(Json.JsonOptions);
+            var body = await response.Content.ReadFromJsonAsync<EventResponse>(Json.JsonOptions).ConfigureAwait(false);
             if (body is null)
                 return new SendResult { Success = false, Error = "invalid response from server" };
 
             return new SendResult
             {
-                Success   = true,
+                Success = true,
                 Workspace = body.Workspace,
-                Channel   = body.Channel,
-                Warnings  = body.Warnings ?? [],
+                Channel = body.Channel,
+                Warnings = body.Warnings ?? new List<string>(),
             };
         }
         catch (Exception)

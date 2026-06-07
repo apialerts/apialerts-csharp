@@ -1,16 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net10.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Title>API Alerts</Title>
     <Authors>API Alerts</Authors>
-    <Version>2.0.0</Version>
-    <Description>C# client for the API Alerts notification platform. Effortless project notifications — send once, deliver everywhere.</Description>
+    <Version>1.0.0</Version>
+    <Description>C# client for the API Alerts notification platform. Effortless project notifications, send once, deliver everywhere. Works in .NET, Unity, and Godot C# projects.</Description>
     <Summary>C# client for the API Alerts notification platform.</Summary>
-    <Copyright>Copyright © API Alerts 2025</Copyright>
-    <PackageTags>apialerts notifications alerts monitoring push</PackageTags>
+    <Copyright>Copyright © API Alerts 2026</Copyright>
+    <PackageTags>apialerts notifications alerts monitoring push unity godot</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://apialerts.com/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/apialerts/apialerts-csharp</RepositoryUrl>
@@ -18,6 +19,22 @@
     <PackageIcon>icon.png</PackageIcon>
     <RootNamespace>APIAlerts</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Text.Json" Version="10.0.0" />
+    <PackageReference Include="System.Net.Http.Json" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>APIAlerts.Tests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
 
   <ItemGroup>
     <None Include="..\..\icon.png">

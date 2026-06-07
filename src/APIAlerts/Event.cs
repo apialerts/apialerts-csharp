@@ -1,30 +1,55 @@
+using System.Text.Json.Serialization;
+
 namespace APIAlerts;
 
 /// <summary>
-/// An event to send to the API Alerts platform.
+/// A single notification dispatched to API Alerts.
+///
 /// Only <see cref="Message"/> is required. All other fields are optional
 /// and omitted from the JSON payload when null.
 /// </summary>
 public class Event
 {
-    /// <summary>Required. The notification message.</summary>
+    /// <summary>
+    /// Human-readable notification text. Required. This is what appears on
+    /// the push notification lock screen.
+    /// </summary>
     public string Message { get; init; } = string.Empty;
 
-    /// <summary>Optional. The channel to deliver to. Uses the default channel if null.</summary>
+    /// <summary>
+    /// Workspace channel the push notification fires on. Defaults to the
+    /// workspace default channel when omitted.
+    /// </summary>
     public string? Channel { get; init; }
 
-    /// <summary>Optional. An event key for routing rules (e.g. "ci.deploy").</summary>
+    /// <summary>
+    /// Identifies what kind of thing happened. Optional but recommended.
+    /// Use dotted notation (e.g. <c>ci.deploy.success</c>, <c>payment.failed</c>,
+    /// <c>user.signup</c>) so routing rules can match glob patterns like
+    /// <c>ci.*</c> or <c>*.failed</c>.
+    /// </summary>
+    /// <remarks>
+    /// Serialised as <c>event</c> over the wire. The property is named
+    /// <c>EventKey</c> in C# because <c>event</c> is a reserved keyword.
+    /// </remarks>
+    [JsonPropertyName("event")]
     public string? EventKey { get; init; }
 
-    /// <summary>Optional. A short title displayed above the message.</summary>
+    /// <summary>Short headline some destinations render separately from the message body.</summary>
     public string? Title { get; init; }
 
-    /// <summary>Optional. Tags to attach to the event.</summary>
+    /// <summary>Categorisation tags for filtering and search.</summary>
     public string[]? Tags { get; init; }
 
-    /// <summary>Optional. A URL to include with the event.</summary>
+    /// <summary>
+    /// URL associated with the event. Available as a deeplink for push
+    /// notifications and as a call-to-action for routed destinations.
+    /// </summary>
     public string? Link { get; init; }
 
-    /// <summary>Optional. Arbitrary structured data attached to the event.</summary>
+    /// <summary>
+    /// Arbitrary key-value metadata. Available to non-push destinations for
+    /// templating (Slack message bodies, email templates, webhook payloads).
+    /// </summary>
     public object? Data { get; init; }
 }

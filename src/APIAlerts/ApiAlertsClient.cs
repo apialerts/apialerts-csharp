@@ -1,90 +1,83 @@
 using APIAlerts.network;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace APIAlerts;
 
 /// <summary>
-/// Instance-based API Alerts client.
-/// Use <see cref="Client"/> for a convenient global singleton, or construct
-/// this class directly when you need multiple clients or full lifecycle control.
+/// Instance-based client. Construct directly or register as
+/// <see cref="IApiAlertsClient"/> in a DI container. <see cref="ApiAlerts"/> is
+/// the static singleton facade over a default instance.
 /// </summary>
-public class ApiAlertsClient
+public class ApiAlertsClient : IApiAlertsClient
 {
     private readonly string _apiKey;
     private readonly bool _debug;
+    private readonly ILogger _logger;
     private readonly Network _network;
 
-    public ApiAlertsClient(string apiKey, bool debug = false, HttpClient? httpClient = null)
+    /// <param name="apiKey">Workspace API key (Bearer token on every request).</param>
+    /// <param name="debug">Log success / warning / non-critical errors via <paramref name="logger"/>.</param>
+    /// <param name="logger">Optional logger; defaults to <see cref="NullLogger.Instance"/>.</param>
+    /// <param name="httpClient">Optional HttpClient; the SDK creates one with a 30s timeout if null.</param>
+    public ApiAlertsClient(string apiKey, bool debug = false, ILogger? logger = null, HttpClient? httpClient = null)
     {
-        _apiKey  = apiKey;
-        _debug   = debug;
+        _apiKey = apiKey;
+        _debug = debug;
+        _logger = logger ?? NullLogger.Instance;
         _network = new Network(httpClient);
     }
 
-    /// <summary>
-    /// Override the integration name, version, and base URL.
-    /// Used by official integrations and in tests to redirect requests to a mock server.
-    /// </summary>
     public void SetOverrides(string integration, string version, string baseUrl) =>
         _network.SetOverrides(integration, version, baseUrl);
 
-    /// <summary>
-    /// Send an event — fire-and-forget (async Task).
-    /// Critical errors are always logged to Console.Error regardless of debug setting.
-    /// HTTP errors and success are only logged when debug is enabled.
-    /// Never throws.
-    /// </summary>
-    public async Task Send(Event evt)
+    public void Send(Event evt, string? apiKey = null)
     {
-        // Critical errors — always log
-        if (string.IsNullOrEmpty(_apiKey))
+        var key = !string.IsNullOrEmpty(apiKey) ? apiKey : _apiKey;
+
+        if (string.IsNullOrEmpty(key))
         {
-            await Console.Error.WriteLineAsync("x (apialerts.com) Error: api key is missing");
+            _logger.LogError("x (apialerts.com) Error: api key is missing");
             return;
         }
         if (string.IsNullOrEmpty(evt.Message))
         {
-            await Console.Error.WriteLineAsync("x (apialerts.com) Error: message is required");
+            _logger.LogError("x (apialerts.com) Error: message is required");
             return;
         }
 
-        var result = await SendAsync(evt);
-
-        if (!_debug) return;
-
-        if (!result.Success)
+        _ = Task.Run(async () =>
         {
-            await Console.Error.WriteLineAsync($"x (apialerts.com) Error: {result.Error}");
+            var result = await _network.PostEvent(key!, evt).ConfigureAwait(false);
+            if (_debug) LogResult(result);
+        });
+    }
+
+    public async Task<SendResult> SendAsync(Event evt, string? apiKey = null)
+    {
+        var key = !string.IsNullOrEmpty(apiKey) ? apiKey : _apiKey;
+
+        if (string.IsNullOrEmpty(key))
+            return new SendResult { Success = false, Error = "api key is missing" };
+        if (string.IsNullOrEmpty(evt.Message))
+            return new SendResult { Success = false, Error = "message is required" };
+
+        var result = await _network.PostEvent(key!, evt).ConfigureAwait(false);
+        if (_debug) LogResult(result);
+        return result;
+    }
+
+    private void LogResult(SendResult result)
+    {
+        if (result.Success)
+        {
+            _logger.LogInformation("✓ (apialerts.com) Alert sent to {Workspace} ({Channel})", result.Workspace, result.Channel);
+            foreach (var warning in result.Warnings)
+                _logger.LogWarning("! (apialerts.com) Warning: {Warning}", warning);
         }
         else
         {
-            await Console.Error.WriteLineAsync($"✓ (apialerts.com) Alert sent to {result.Workspace} ({result.Channel})");
-            foreach (var warning in result.Warnings)
-                await Console.Error.WriteLineAsync($"! (apialerts.com) Warning: {warning}");
+            _logger.LogError("x (apialerts.com) Error: {Error}", result.Error);
         }
-    }
-
-    /// <summary>
-    /// Send an event and return a <see cref="SendResult"/>.
-    /// Never throws — check <see cref="SendResult.Success"/> instead.
-    /// </summary>
-    public async Task<SendResult> SendAsync(Event evt)
-    {
-        if (string.IsNullOrEmpty(_apiKey))
-            return new SendResult { Success = false, Error = "api key is missing" };
-        if (string.IsNullOrEmpty(evt.Message))
-            return new SendResult { Success = false, Error = "message is required" };
-
-        return await _network.PostEvent(_apiKey, evt);
-    }
-
-    /// <summary>Send an event using an explicit API key, bypassing the configured one.</summary>
-    public async Task<SendResult> SendWithKey(string apiKey, Event evt)
-    {
-        if (string.IsNullOrEmpty(apiKey))
-            return new SendResult { Success = false, Error = "api key is missing" };
-        if (string.IsNullOrEmpty(evt.Message))
-            return new SendResult { Success = false, Error = "message is required" };
-
-        return await _network.PostEvent(apiKey, evt);
     }
 }

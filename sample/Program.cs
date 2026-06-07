@@ -25,7 +25,7 @@ if (isBuild)
     {
         Message  = "C# SDK - PR build success",
         Channel  = "developer",
-        EventKey = "ci.build",
+        EventKey = "ci.sdk.build.csharp",
         Title    = "Build Passed",
         Tags     = ["CI/CD", "C#", "Build"],
         Link     = link,
@@ -44,7 +44,7 @@ else if (isRelease)
     {
         Message  = "C# SDK - Build for publish success",
         Channel  = "developer",
-        EventKey = "ci.release",
+        EventKey = "ci.sdk.release.csharp",
         Title    = "Release Build Passed",
         Tags     = ["CI/CD", "C#", "Build"],
         Link     = link,
@@ -63,7 +63,7 @@ else if (isPublish)
     {
         Message  = "C# SDK - NuGet publish success",
         Channel  = "releases",
-        EventKey = "ci.publish",
+        EventKey = "ci.sdk.publish.csharp",
         Title    = "Published",
         Tags     = ["CI/CD", "C#", "Deploy"],
         Link     = link,
