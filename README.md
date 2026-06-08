@@ -16,26 +16,11 @@ Targets `netstandard2.0` and `net10.0`. Works in:
 
 ## Installation
 
-### .NET
-
 ```bash
 dotnet add package apialerts
 ```
 
-### Unity
-
-NuGet packages don't import into Unity natively. Two options:
-
-1. **[NuGetForUnity](https://github.com/GlitchEnzo/NuGetForUnity)** (recommended) - install the tool, search for `apialerts`, click install.
-2. **Direct DLL drop** - download the latest `.nupkg` from [NuGet](https://www.nuget.org/packages/apialerts), rename to `.zip`, extract the `netstandard2.0/APIAlerts.dll`, and drop it into `Assets/Plugins/` in your Unity project.
-
-### Godot (C#)
-
-```bash
-dotnet add package apialerts
-```
-
-Standard .NET tooling works in Godot C# projects.
+That covers .NET, ASP.NET Core, Blazor, Azure Functions, and console apps. Unity and Godot need a couple of extra steps - see [Game engines](#game-engines-unity--godot) below.
 
 ## Quick Start
 
@@ -186,12 +171,42 @@ var result = await ApiAlerts.SendAsync(
 | `Warnings` | `IReadOnlyList<string>` | Non-fatal server warnings |
 | `Error` | `string?` | Error message (present on failure) |
 
-## Game dev use cases
+## Game engines (Unity & Godot)
 
-- **Unity build pipelines**: ping Slack/Discord/your phone when a Unity Cloud Build finishes
-- **Godot CI**: notifications when GitHub Actions builds your `.pck` or exports finish
-- **Live ops**: server-side alerts when a player triggers a webhook, crash report hooks
-- **In-editor scripts**: long-running asset import notifications
+Get a push on your phone the moment something happens in your game or live-ops, without building your own backend:
+
+- a new high score lands on the leaderboard
+- a player submits feedback or a bug report
+- a server-side error threshold trips during a live event
+- an in-app purchase completes (or fails)
+- a Unity Cloud Build or Godot export finishes in CI
+
+```csharp
+ApiAlerts.Send(new Event
+{
+    Message  = "New #1 on the leaderboard: 184,200",
+    Channel  = "liveops",
+    EventKey = "game.leaderboard.record",
+    Tags     = new[] { "leaderboard" },
+});
+```
+
+### Unity
+
+NuGet packages don't import into Unity natively, and `APIAlerts.dll` needs assemblies Unity doesn't ship (System.Text.Json and friends), so it won't run on its own.
+
+- **[NuGetForUnity](https://github.com/GlitchEnzo/NuGetForUnity)** (recommended) - install it, search `apialerts`, click install. It resolves the whole dependency tree for you.
+- **Manual DLL drop** (advanced) - extract `lib/netstandard2.0/APIAlerts.dll` from the [`.nupkg`](https://www.nuget.org/packages/apialerts) into `Assets/Plugins/`, along with *every* DLL in its dependency tree (System.Text.Json, System.Net.Http.Json, the Microsoft.Extensions.* abstractions, and their transitive deps). Fiddly by hand, which is why NuGetForUnity is recommended.
+
+Unity also has its own `UnityEngine.Event`, so `new Event { }` is ambiguous under `using UnityEngine;`. Fully-qualify the SDK type as `APIAlerts.Event`, or alias it with `using AlertEvent = APIAlerts.Event;`.
+
+### Godot (C#)
+
+```bash
+dotnet add package apialerts
+```
+
+Standard .NET tooling works here, so NuGet restores the dependencies for you - no manual DLL juggling like Unity. This requires the **.NET edition of Godot** (the Mono/.NET build), not the standard GDScript-only build.
 
 ## Links
 

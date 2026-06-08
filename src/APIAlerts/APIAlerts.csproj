@@ -7,9 +7,9 @@
     <Nullable>enable</Nullable>
     <Title>API Alerts</Title>
     <Authors>API Alerts</Authors>
-    <Version>1.0.0</Version>
-    <Description>C# client for the API Alerts notification platform. Effortless project notifications, send once, deliver everywhere. Works in .NET, Unity, and Godot C# projects.</Description>
-    <Summary>C# client for the API Alerts notification platform.</Summary>
+    <Version>1.1.0</Version>
+    <Description>C# / .NET / Unity / Godot SDK for the API Alerts notification platform. Effortless project notifications: send once, deliver everywhere. Works in ASP.NET Core, Blazor, Azure Functions, console apps, Unity (Mono and IL2CPP), and Godot C# projects.</Description>
+    <Summary>C# / .NET SDK for the API Alerts notification platform.</Summary>
     <Copyright>Copyright © API Alerts 2026</Copyright>
     <PackageTags>apialerts notifications alerts monitoring push unity godot</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
