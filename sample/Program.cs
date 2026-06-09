@@ -29,6 +29,7 @@ if (isBuild)
         Title    = "Build Passed",
         Tags     = ["CI/CD", "C#", "Build"],
         Link     = link,
+        Data     = new { integration = "csharp" },
     });
     if (result.Success)
         Console.WriteLine($"✓ Sent to {result.Workspace} ({result.Channel})");
@@ -48,6 +49,7 @@ else if (isRelease)
         Title    = "Release Build Passed",
         Tags     = ["CI/CD", "C#", "Build"],
         Link     = link,
+        Data     = new { integration = "csharp" },
     });
     if (result.Success)
         Console.WriteLine($"✓ Sent to {result.Workspace} ({result.Channel})");
@@ -67,6 +69,7 @@ else if (isPublish)
         Title    = "Published",
         Tags     = ["CI/CD", "C#", "Deploy"],
         Link     = link,
+        Data     = new { integration = "csharp" },
     });
     if (result.Success)
         Console.WriteLine($"✓ Sent to {result.Workspace} ({result.Channel})");
@@ -95,7 +98,7 @@ else if (isIntegrationTests)
         Title    = "Integration Test",
         Tags     = ["CI/CD", "C#"],
         Link     = link,
-        Data     = new { version = "2.0.0" },
+        Data     = new { integration = "csharp" },
     });
     if (fullResult.Success)
     {
