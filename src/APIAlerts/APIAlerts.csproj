@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Title>API Alerts</Title>
+    <PackageId>ApiAlerts</PackageId>
     <Authors>API Alerts</Authors>
     <Version>1.1.0</Version>
     <Description>C# / .NET / Unity / Godot SDK for the API Alerts notification platform. Effortless project notifications: send once, deliver everywhere. Works in ASP.NET Core, Blazor, Azure Functions, console apps, Unity (Mono and IL2CPP), and Godot C# projects.</Description>
